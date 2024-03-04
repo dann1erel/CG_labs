@@ -3,6 +3,8 @@ from math import factorial
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QGraphicsItem
 
+counter = [1]
+
 
 class ControlPoint(QtWidgets.QGraphicsObject):
     moved = QtCore.pyqtSignal(int, QtCore.QPointF)
@@ -18,7 +20,7 @@ class ControlPoint(QtWidgets.QGraphicsObject):
     # "cache" the boundingRect for optimization
     _boundingRect = _shape.boundingRect()
 
-    def __init__(self, index, pos, parent, prev_point=None):
+    def __init__(self, index, pos, parent, prev_point=None, draw_index=None):
         super().__init__(parent)
         self.index = index
         self.setPos(pos)
@@ -34,6 +36,7 @@ class ControlPoint(QtWidgets.QGraphicsObject):
         self.font.setBold(True)
         if self.index == 0:
             self.prev = prev_point
+        self.draw_index = draw_index
 
     def setIndex(self, index):
         self.index = index
@@ -80,7 +83,7 @@ class ControlPoint(QtWidgets.QGraphicsObject):
             qp.setFont(self.font)
             r = QtCore.QRectF(self.boundingRect())
             r.setSize(r.size() * 2 / 3)
-            qp.drawText(r, QtCore.Qt.AlignCenter, str(self.index + 1))
+            qp.drawText(r, QtCore.Qt.AlignCenter, str(self.draw_index))
             # self.setZValue(-50)
         if not self.isSelected():
             qp.setPen(QtCore.Qt.NoPen)
@@ -100,6 +103,8 @@ class BezierItem(QtWidgets.QGraphicsPathItem):
         self.outlineItem.setPen(QtGui.QPen(QtCore.Qt.black, 2, QtCore.Qt.DotLine))
         self.outlineItem.setZValue(-10)
         self.outlineItem.setOpacity(0.5)
+        self.index = len(counter)
+        print(self.index)
 
         self.controlItems = []
         self._points = []
@@ -135,13 +140,15 @@ class BezierItem(QtWidgets.QGraphicsPathItem):
 
         self._delayUpdatePath = True
         for i, p in enumerate(points):
+            if i == 3:
+                counter.append(1)
             self.insertControlPoint(i, p)
         self._delayUpdatePath = False
 
         self.updatePath()
 
     def _createControlPoint(self, index, pos):
-        ctrlItem = self._ctrlPrototype(index, pos, self, self.prev_ctrl)
+        ctrlItem = self._ctrlPrototype(index, pos, self, self.prev_ctrl, self.index + (index % 2))
         self.controlItems.insert(index, ctrlItem)
         ctrlItem.moved.connect(self._controlPointMoved)
         ctrlItem.removeRequest.connect(self.removeControlPoint)
@@ -243,27 +250,6 @@ class BezierItem(QtWidgets.QGraphicsPathItem):
     @property
     def points(self):
         return self._points
-
-
-class MovablePointFGroup(QGraphicsItem):
-    def __init__(self, endPoint=None, startPoint=None, parent=None):
-        super().__init__(parent)
-        self.setFlag(QGraphicsItem.ItemIsMovable, True)
-        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
-
-        self.point1 = endPoint
-        self.point2 = startPoint
-
-    def boundingRect(self):
-        return self.childrenBoundingRect()
-
-    def itemChange(self, change, value):
-        if change == QGraphicsItem.ItemPositionHasChanged:
-            offset = value - self.pos()
-            self.point1 += offset
-            self.point2 += offset
-
-        return super().itemChange(change, value)
 
 
 class BezierExample(QtWidgets.QWidget):
