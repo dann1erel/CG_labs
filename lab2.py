@@ -274,19 +274,23 @@ class BezierExample(QtWidgets.QWidget):
         self.bezierView = QtWidgets.QGraphicsView(self.bezierScene)
         self.bezierView.setRenderHints(QtGui.QPainter.Antialiasing)
         self.bezierItem = BezierItem(
-            (300, 100), (500, 100))
+            (300, 100), (450, 100))
         self.bezierScene.addItem(self.bezierItem)
+        self.newBezierItem = self.bezierItem
+        for i in range(8):
+            self.bezierItem = self.newBezierItem
+            endPoint = (450+150 * i, 100)
+            self.newBezierItem = BezierItem(endPoint, (endPoint[0] + 150, endPoint[1]),
+                                            self.bezierItem.controlItems[3])
+
+            self.bezierScene.addItem(self.newBezierItem)
+
         self.newBezierItem = self.bezierItem
         self.groups = []
 
         mainLayout = QtWidgets.QVBoxLayout(self)
         topLayout = QtWidgets.QHBoxLayout()
         mainLayout.addLayout(topLayout)
-        topLayout.addWidget(QtWidgets.QLabel('Resolution:'))
-
-        resSpin = QtWidgets.QSpinBox(minimum=1, maximum=100)
-        resSpin.setValue(self.bezierItem.stepRatio())
-        topLayout.addWidget(resSpin)
 
         topLayout.addStretch()
         addButton = QtWidgets.QPushButton('Add point')
@@ -295,7 +299,6 @@ class BezierExample(QtWidgets.QWidget):
         mainLayout.addWidget(self.bezierView)
 
         self.bezierView.installEventFilter(self)
-        resSpin.valueChanged.connect(self.bezierItem.setStepRatio)
         addButton.clicked.connect(self.addPoint)
 
     def addPoint(self, point=None):
