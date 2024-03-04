@@ -263,17 +263,10 @@ class BezierExample(QtWidgets.QWidget):
             (300, 100), (450, 100))
         self.bezierScene.addItem(self.bezierItem)
         self.newBezierItem = self.bezierItem
-        for i in range(8):
-            self.bezierItem = self.newBezierItem
-            endPoint = (450+150 * i, 100)
-            self.newBezierItem = BezierItem(endPoint, (endPoint[0] + 150, endPoint[1]),
-                                            self.bezierItem.controlItems[3])
-
-            self.bezierScene.addItem(self.newBezierItem)
-
-        self.newBezierItem = self.bezierItem
         self.groups = []
-
+        for i in range(8):
+            self.addPoint()
+        # self.newBezierItem = self.bezierItem
         mainLayout = QtWidgets.QVBoxLayout(self)
         topLayout = QtWidgets.QHBoxLayout()
         mainLayout.addLayout(topLayout)
@@ -290,7 +283,7 @@ class BezierExample(QtWidgets.QWidget):
     def addPoint(self, point=None):
         self.bezierItem = self.newBezierItem
         endPoint = (self.bezierItem.points[3].x(), self.bezierItem.points[3].y())
-        self.newBezierItem = BezierItem(endPoint, (endPoint[0] + 200, endPoint[1] + 100), self.bezierItem.controlItems[3])
+        self.newBezierItem = BezierItem(endPoint, (endPoint[0] + 100, endPoint[1] + 50), self.bezierItem.controlItems[3])
 
         self.bezierScene.addItem(self.newBezierItem)
 
